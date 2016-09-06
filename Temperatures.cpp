@@ -107,9 +107,6 @@ float Temperatures::getHighestTemp()
   for(int i = 0; i <= 3; i++)
   {
     float currentRead = getTemp(i);
-    //just temporary, skip cpu until circuit bug is fixed
-    if(i == 0)
-    currentRead = 0;
     if(currentRead > highestTemp)
       highestTemp = currentRead;
   }
