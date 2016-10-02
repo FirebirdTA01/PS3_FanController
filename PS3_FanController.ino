@@ -98,8 +98,6 @@ void loop()
   }
 
   //switch modes if the potentiometer is dialed way down
-  //comment out for Mike's since his potentiometer broke
-  /*
   if(analogRead(POTENTIOMETER) <= 200 && currentTime >= toggleTime)
    {
    toggleTime = millis()+3000; //wait 3 seconds before we can switch modes again
@@ -107,7 +105,7 @@ void loop()
    delay(500);
    digitalWrite(led, LOW);
    ctrlMode = !ctrlMode;
-   }*/
+   }
 
   setFans();
   setRgbLed();
