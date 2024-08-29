@@ -1,7 +1,7 @@
 # Manual Fan Controller for launch PS3 models
 ## Slow down or prevent the degredation of the ps3 (yellow light failure) by running the fans more aggressively than Sony's factory curves.
 
-Originally designed using the Teensy 2.0 microcontroller (now planning to update to support other microcontrollers). This takes control of the 
+Originally designed using the Teensy 2.0 microcontroller (now planning to update to support other [read newer] microcontrollers). This takes control of the 
 system fan away from playstation and gives the microcontroller (and the user) direct control of the fan speeds. It monitors temperatures of 
 various components, most crucially the CELL and RSX, and sets a minimum fan speed based on this temperature. 
 
@@ -11,6 +11,7 @@ There is a 4 pin RGB LED used to indicate system temperatures at a glance.
   - Green indicates normal expected operating temperatures.
   - Yellow/Orange indicate temperatures are slightly higher than average even under heavy loads.
   - Red indicates the system is overheating.
+
 The onboard LED of the Teensy Microcontroller flashes rapidly when the system is overheating. It is also used during the fan test mode to indicate
 low/high speed set.
 
@@ -33,5 +34,7 @@ This is straight forward enough, just open the .ino project in the arduino edito
 ### Hardware
 Coming soon / this is slightly more complicated. I'm now planning on uploading a board design file and a parts list, but as this project was originally made nearly
 12 years earlier than this writing I need to track down the correct (or compatible) model of thermistors used as well as actually draw the PCB in 
-Eagle to share it. The original was made with a chemically etched and sticker/masked custom PCB. You can easily build the circuit using prototyping 
+Eagle to share it. The original was made with a chemically etched and sticker-masked custom PCB. You can easily build the circuit using prototyping 
 board but soon enough there will the option to make a proper PCB.
+### Console Modification
+Coming soon.
