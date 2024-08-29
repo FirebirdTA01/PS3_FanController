@@ -35,7 +35,7 @@ int blueVal;
 int greenVal;
 
 const float MAX_TEMP = 58.0f;//<- aggressive || normal -> 68.0f; //degrees celcius when system is considered hot
-int FAN_LOW = 40; //40% default minimum fan speed
+int FAN_LOW = 20; //20% default minimum fan speed
 
 float testTemp; //code controlable value for testing parts of the program
 bool tTempIncr;
@@ -93,7 +93,7 @@ void loop()
   //calculate temperatures
   if(currentTime >= tempTimer)
   {
-    tempTimer = millis()+500; //every .5 seconds
+    tempTimer = millis()+250; //every .5 seconds
     tempObj.calcTemps(CANTHERM_MF52_100k,R_Balance);
   }
 
@@ -399,5 +399,3 @@ void setRgbLed()
   analogWrite(rgbLed_G, 255 - greenVal);
   analogWrite(rgbLed_B, 255 - blueVal);
 }
-
-
