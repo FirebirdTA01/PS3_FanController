@@ -284,9 +284,9 @@ void setFans()
     isHot = true;
   }
 
+  /* If using separate northbridge fan
   float nbTemp = tempObj.getTemp(NB);
 
-  /*
   //control the nbFan based on nb temp
    if(nbTemp <= 40)
    percent1 = 50;
