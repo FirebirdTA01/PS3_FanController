@@ -30,7 +30,10 @@ the fan speed and LED color both return to what is dictated by the other modes i
 
 ## Building
 ### Software
-This is straight forward enough, just open the .ino project in the arduino editor and select the correct board type and COM port.
+This is straight forward enough, just open the .ino project in the arduino editor and select the correct board type and COM port. There are currently two linear 
+maps defined for the fan speed targets. They can be choosen at compile time with the AGRESSIVE #define. Un-commenting this #define will use a much more aggressive 
+'curve' (still just a linear map) by ramping up the fan speed earlier and targeting a lower temperature. This is highly recommended if this mod is being installed 
+in a system that has been previously repaired with a reflow or had any past YLOD type failure.
 ### Hardware
 Coming soon / this is slightly more complicated. I'm now planning on uploading a board design file and a parts list, but as this project was originally made nearly
 12 years earlier than this writing I need to track down the correct (or compatible) model of thermistors used as well as actually draw the PCB in 
