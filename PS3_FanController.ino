@@ -1,4 +1,8 @@
 //Fan Controller designed for ps3
+//Pinout is currently set to be compatible with a teensy 2.0 microcontroller
+
+//uncomment for a more aggressive fan tuning: useful on systems which have been reflowed for repair
+//#define AGGRESSIVE
 
 #include "Temperatures.h"
 //298.15f
@@ -34,8 +38,18 @@ int redVal;
 int blueVal;
 int greenVal;
 
-const float MAX_TEMP = 58.0f;//<- aggressive || normal -> 68.0f; //degrees celcius when system is considered hot
-int FAN_LOW = 20; //20% default minimum fan speed
+#ifdef AGGRESSIVE
+const float MAX_TEMP = 58.0f; //degrees celcius when system is considered hot
+const float CURVE_START_TEMP = 26.0f;
+const float TARGET_TEMP = 39.0f;
+const int FAN_LOW = 35; //Fans can't be set lower than 35%
+#else
+const float MAX_TEMP = 70.0f; //degrees celcius when system is considered hot
+const float CURVE_START_TEMP = 35.0f;
+const float TARGET_TEMP = 50.0f;
+const int FAN_LOW = 20; //Fans can't be set lower than 20%
+#endif
+int FAN_CALCULATED_MIN = 20; //20% default minimum calculated fan speed
 
 float testTemp; //code controlable value for testing parts of the program
 bool tTempIncr;
@@ -93,7 +107,7 @@ void loop()
   //calculate temperatures
   if(currentTime >= tempTimer)
   {
-    tempTimer = millis()+250; //every .5 seconds
+    tempTimer = millis()+250; //every .25 seconds
     tempObj.calcTemps(CANTHERM_MF52_100k,R_Balance);
   }
 
@@ -165,13 +179,19 @@ void loop()
   }
 }
 
+int pwmFromPercent(int inPercent)
+{
+  return 255 * ((float)inPercent / 100);
+}
+
 void fanTest()
 {
   Serial.println("Fan Test...");
   //Fan Test
   digitalWrite(led, HIGH);
   Serial.println("...Speeding up");
-  for(int i = 102; i <= MAX_PMW; i++)  //102 is 40% % is the lowest desired fan speed
+  int lowSpeed = pwmFromPercent(FAN_LOW);
+  for(int i = lowSpeed; i <= MAX_PMW; i++)
   {
     analogWrite(MAIN_FAN, i);
     analogWrite(NB_FAN, i);
@@ -192,7 +212,7 @@ void fanTest()
   }
   digitalWrite(led, LOW);
   Serial.println("...Slowing down");
-  for(int i = MAX_PMW; i >= 102; i--) //40% is the slowest desired speed (102 is 40% of 255)
+  for(int i = MAX_PMW; i >= lowSpeed; i--)
   {
     analogWrite(MAIN_FAN, i);
     analogWrite(NB_FAN, i);
@@ -203,7 +223,9 @@ void fanTest()
     delay(25);
   }
   //pulse led slowly while at slowest setting
-  Serial.println("...Slowest Setting!  40 %");
+  Serial.print("...Slowest Setting!  ");
+  Serial.print(FAN_LOW);
+  Serial.println("%");
   analogWrite(rgbLed_R, 204);
   analogWrite(rgbLed_G, 204);
   analogWrite(rgbLed_B, 204);
@@ -230,59 +252,12 @@ void setFans()
   if(hT <= MAX_TEMP)
     isHot = false;
 
-  //set FAN_LOW (for main fan) based on highest temp
-  /*
-  if(hT <= 35)
-    FAN_LOW = 40;
-  else if(hT >= 35 && hT <= 40)
-    FAN_LOW = 45;
-  else if(hT >= 41 && hT <= 44)
-    FAN_LOW = 50;
-  else if(hT >= 45 && hT <= 48)
-    FAN_LOW = 55;
-  else if(hT >= 49 && hT <= 51)
-    FAN_LOW = 63;
-  else if(hT >= 52 && hT <= 55)
-    FAN_LOW = 70;
-  else if(hT >= 56 && hT <= 59)
-    FAN_LOW = 77;
-  else if(hT >= 60 && hT <= 63)
-    FAN_LOW = 85;
-  else if(hT >= 64 && hT <= 67)
-    FAN_LOW = 93;
-  else if(hT >= MAX_TEMP)
-  {
-    FAN_LOW = 99.2;
-    isHot = true;
-  }*/
-  //^^ Regular code above, aggressive setup for Mike's below
-  if(hT <= 26.00)
-    FAN_LOW = 40;
-  else if(hT >= 26.01 && hT <= 30.00)
-    FAN_LOW = 45;
-  else if(hT >= 30.01 && hT <= 34.00)
-    FAN_LOW = 50;
-  else if(hT >= 34.01 && hT <= 37.00)
-    FAN_LOW = 55;
-  else if(hT >= 37.01 && hT <= 40.00)
-    FAN_LOW = 63;
-  else if(hT >= 40.01 && hT <= 43.00)
-    FAN_LOW = 66;
-  else if(hT >= 43.01 && hT <= 45.00)
-    FAN_LOW = 70;
-  else if(hT >= 45.01 && hT <= 49.00)
-    FAN_LOW = 77;
-  else if(hT >= 49.01 && hT <= 53.00)
-    FAN_LOW = 85;
-  else if(hT >= 53.01 && hT <= 55.00)
-    FAN_LOW = 93;
-  else if(hT >= 55.01 && hT <= 57.99)
-    FAN_LOW = 93;
-  else if(hT >= MAX_TEMP)
-  {
-    FAN_LOW = 99.2;
-    isHot = true;
-  }
+
+  int mappedSpeed = map(hT, CURVE_START_TEMP, MAX_TEMP, FAN_LOW, 100);
+
+  FAN_CALCULATED_MIN = mappedSpeed;
+  if(mappedSpeed > 100);
+    mappedSpeed = 100;
 
   /* If using separate northbridge fan
   float nbTemp = tempObj.getTemp(NB);
@@ -300,8 +275,8 @@ void setFans()
 
   if(ctrlMode == AUTO)
   {
-    //set main fan according to temperature (slightly higher than FAN_LOW)
-    percent = FAN_LOW + 10;
+    //set main fan according to temperature (slightly higher than FAN_CALCULATED_MIN)
+    percent = FAN_CALCULATED_MIN + 10;
     if(percent > 99.2)
       percent = 99.2;
 
@@ -317,8 +292,8 @@ void setFans()
     percent = (pos*100)/1000;
     if(percent > 99.2)
       percent = 99.2;
-    if(percent < FAN_LOW) //40%
-      percent = FAN_LOW;
+    if(percent < FAN_CALCULATED_MIN)
+      percent = FAN_CALCULATED_MIN;
     //Serial.println(percent);
     int pmw = (percent*255)/100;
     int pmw1 = (percent1*255)/100;
@@ -339,8 +314,7 @@ void setRgbLed()
   //hT = testTemp;
 
   //define operating temp range and caculate PMW values
-  /*
-  if(hT <= 35.0f)
+  if(hT <= CURVE_START_TEMP)
   {
     redVal = 0;
     greenVal = 0;
@@ -352,43 +326,16 @@ void setRgbLed()
     greenVal = 0;
     blueVal = 0;
   }
-  else if(hT >= 35.01f && hT <= 50.0f) //fade from blue to green
+  else if(hT >= CURVE_START_TEMP + 0.01 && hT <= TARGET_TEMP) //fade from blue to green
   {
-    float p = ((hT-35.01)*100)/(50-35.01);
+    float p = ((hT - CURVE_START_TEMP + 0.01)*100)/(TARGET_TEMP - CURVE_START_TEMP + 0.01);
     greenVal = (p*255)/100;
     blueVal = 255 - greenVal;
     redVal = 0;
   }
-  else if(hT >= 50.01f && hT <= MAX_TEMP) //fade from green to red
+  else if(hT >= TARGET_TEMP + 0.01 && hT <= MAX_TEMP) //fade from green to red
   {
-    float p = ((hT-55.01)*100)/(MAX_TEMP-50.01);
-    redVal = (p*255)/100;
-    greenVal = 255 - greenVal;
-    blueVal = 0;
-  }*/
-  //^^ Regular code above, aggressive setup for Mike's below
-  if(hT <= 25.0f)
-  {
-    redVal = 0;
-    greenVal = 0;
-    blueVal = 255;
-  }
-  else if(hT > MAX_TEMP)
-  {
-    redVal = 255;
-    greenVal = 0;
-    blueVal = 0;
-  }
-  else if(hT >= 25.01f && hT <= 39.0f) //fade from blue to green
-  {
-    float p = ((hT-25.01)*100)/(39-25.01);
-    greenVal = (p*255)/100;
-    blueVal = 255 - greenVal;
-    redVal = 0;
-  }
-  else if(hT >= 39.01f && hT <= MAX_TEMP) //fade from green to red
-  {
-    float p = ((hT-39.01)*100)/(MAX_TEMP-39.01);
+    float p = ((hT-TARGET_TEMP + 0.01)*100)/(MAX_TEMP - TARGET_TEMP + 0.01);
     redVal = (p*255)/100;
     greenVal = 255 - redVal;
     blueVal = 0;
