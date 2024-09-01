@@ -8,6 +8,8 @@
 #define EXHAUST_THERM A4
 
 //10k resistor actual measured values
+//IMPORTANT: These values should be changed based on readings you take yourself from the balance resistors you're using
+//This will allow for a more accurate temperature calculation
 #define R_BalanceCPU 9830
 #define R_BalanceGPU 9840
 #define R_BalanceNB 9860
