@@ -31,10 +31,13 @@ the fan speed and LED color both return to what is dictated by the other modes i
 
 ## Building
 ### Software
-This is straight forward enough, just open the .ino project in the arduino editor and select the correct board type and COM port. There are currently two linear 
-maps defined for the fan speed targets. They can be choosen at compile time with the AGRESSIVE #define. Un-commenting this #define will use a much more aggressive 
-'curve' (still just a linear map) by ramping up the fan speed earlier and targeting a lower temperature. This is highly recommended if this mod is being installed 
-in a system that has been previously repaired with a reflow or had any past YLOD type failure.
+This is straight forward enough, just open the .ino project in the arduino editor and select the correct board type and COM port. 
+### Code Edits
+  - There are currently two linear maps defined for the fan speed targets. They can be choosen at compile time with the AGRESSIVE #define. Un-commenting this #define 
+will use a much more aggressive 'curve' (still just a linear map) by ramping up the fan speed earlier and targeting a lower temperature. This is highly recommended
+if this mod is being installed in a system that has been previously repaired with a reflow or had any past YLOD type failure.
+  - Inside of temperature.h exist #defines for the balance resistors used in the temperature monitoring circuit. These should be set to equal the real world values 
+of your specific 10k resistors. This will give a more accurate temperature calculation if done. Otherwise, just set them each to 10000.
 ### Hardware
 Coming soon / this is slightly more complicated. I'm now planning on uploading a board design file and a parts list, but as this project was originally made nearly
 12 years earlier than this writing I need to track down the correct (or compatible) model of thermistors used as well as actually draw the PCB in 
